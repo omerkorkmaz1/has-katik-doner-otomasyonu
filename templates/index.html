@@ -1,0 +1,1146 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Has Katık Döner - Sipariş Otomasyonu</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --hk-red: #d90429;
+            --hk-dark-red: #9b021a;
+            --hk-black: #111111;
+        }
+
+        body { 
+            background-color: #f1f3f5; 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #212529;
+        }
+
+        .navbar-custom {
+            background-color: var(--hk-black);
+            border-bottom: 3px solid var(--hk-red);
+            padding: 8px 18px;
+        }
+
+        .brand-title {
+            color: #ffffff;
+            font-weight: 800;
+            letter-spacing: 1px;
+            font-size: 1.35rem;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .brand-logo-wrapper {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            overflow: hidden;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid #ffffff;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.5);
+            background: #fff;
+        }
+
+        .brand-logo-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center;
+            transform: scale(1.75);
+        }
+
+        .card { 
+            border: none; 
+            border-radius: 10px;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.06); 
+            background: #fff;
+        }
+
+        .card-header-custom {
+            font-weight: 700;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 2px solid #f1f3f5;
+            padding-bottom: 8px;
+            margin-bottom: 10px;
+        }
+
+        .btn-durum-kaydet { 
+            background-color: var(--hk-red); 
+            color: white; 
+            font-weight: 700;
+            border-radius: 8px;
+            transition: 0.2s;
+        }
+        .btn-durum-kaydet:hover { 
+            background-color: var(--hk-dark-red); 
+            color: white; 
+        }
+
+        /* Kayıtlı Adres Rozetleri */
+        .kayitli-adres-kutusu {
+            max-height: 85px;
+            overflow-y: auto;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            padding: 4px 0;
+        }
+
+        .adres-chip {
+            background-color: #f8f9fa;
+            border: 1px solid #ced4da;
+            border-radius: 6px;
+            padding: 2px 8px;
+            font-size: 0.78rem;
+            display: inline-flex;
+            align-items: center;
+            cursor: pointer;
+            transition: 0.15s;
+        }
+
+        .adres-chip:hover {
+            background-color: #e9ecef;
+            border-color: var(--hk-red);
+        }
+
+        .adres-chip.aktif {
+            background-color: #fff0f3;
+            border-color: var(--hk-red);
+            color: var(--hk-red);
+            font-weight: 700;
+        }
+
+        .adres-chip .btn-adres-sil {
+            color: #adb5bd;
+            margin-left: 6px;
+            font-size: 0.85rem;
+            border: none;
+            background: none;
+            padding: 0;
+            line-height: 1;
+        }
+
+        .adres-chip .btn-adres-sil:hover {
+            color: var(--hk-red);
+        }
+
+        /* Menü Gridleri */
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 6px;
+            max-height: 210px;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 4px;
+            max-height: 150px;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+
+        .menu-btn {
+            padding: 8px 10px !important;
+            font-size: 13px !important;
+            font-weight: 600;
+            text-align: left;
+            border-radius: 6px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .btn-durum-item {
+            background-color: #ffffff;
+            border: 1.5px solid #343a40;
+            color: #111;
+        }
+        .btn-durum-item:hover {
+            background-color: #111;
+            color: #fff;
+        }
+
+        .btn-icecek-item {
+            background-color: #ffffff;
+            border: 1.5px solid #0077b6;
+            color: #0077b6;
+        }
+        .btn-icecek-item:hover {
+            background-color: #0077b6;
+            color: #fff;
+        }
+
+        .btn-ekstra-item {
+            background-color: #fff;
+            border: 1px dashed var(--hk-red);
+            color: var(--hk-red);
+            font-size: 11px !important;
+            padding: 6px 6px !important;
+            font-weight: 600;
+        }
+        .btn-ekstra-item:hover {
+            background-color: var(--hk-red);
+            color: #fff;
+        }
+
+        .btn-cikar-item {
+            background-color: #fff;
+            border: 1px dashed #6c757d;
+            color: #495057;
+            font-size: 11px !important;
+            padding: 6px 6px !important;
+            font-weight: 600;
+        }
+        .btn-cikar-item:hover {
+            background-color: #495057;
+            color: #fff;
+        }
+
+        /* Sepet */
+        #sepetListesi {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .sepet-adet-badge {
+            background-color: var(--hk-red);
+            color: white;
+            font-weight: 800;
+            font-size: 0.8rem;
+            padding: 2px 7px;
+            border-radius: 4px;
+            margin-right: 6px;
+        }
+
+        .btn-adet-islem {
+            padding: 1px 7px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            line-height: 1.2;
+            border-radius: 4px;
+        }
+
+        .mod-tag {
+            font-size: 0.75rem;
+            background: #e9ecef;
+            color: #495057;
+            padding: 1px 6px;
+            border-radius: 4px;
+            margin-right: 4px;
+            display: inline-block;
+            margin-top: 3px;
+        }
+
+        #telefonBildirim { 
+            display: none; 
+            position: fixed; 
+            top: 20px; 
+            left: 50%; 
+            transform: translateX(-50%); 
+            z-index: 9999; 
+            width: 85%; 
+            max-width: 520px; 
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3); 
+            border-left: 6px solid var(--hk-red);
+        }
+
+        .p-custom { padding: 14px; }
+    </style>
+</head>
+<body>
+
+<!-- TELEFON BİLDİRİMİ -->
+<div id="telefonBildirim" class="alert alert-dark alert-dismissible fade show" role="alert">
+    <div class="d-flex align-items-center justify-content-between">
+        <div>
+            <strong class="text-danger"><i class="bi bi-telephone-inbound-fill me-1"></i> ARAMA GELİYOR:</strong>
+            <span id="bildirimNo" class="fs-5 fw-bold text-white ms-2"></span>
+        </div>
+        <div>
+            <button type="button" class="btn btn-sm btn-success fw-bold px-3" onclick="bildirimdenDoldur()">Siparişe Başla</button>
+            <button type="button" class="btn-close btn-close-white ms-2" onclick="document.getElementById('telefonBildirim').style.display='none'"></button>
+        </div>
+    </div>
+</div>
+
+<!-- NAVBAR -->
+<nav class="navbar navbar-expand-lg navbar-dark navbar-custom mb-3">
+    <div class="container-fluid">
+        <span class="brand-title">
+            <span class="brand-logo-wrapper">
+                <img src="{{ url_for('static', filename='logo.jpeg') }}" alt="Logo" class="brand-logo-img">
+            </span>
+            HAS KATIK DÖNER
+        </span>
+        <div class="navbar-nav ms-auto d-flex flex-row gap-2">
+            <button class="btn btn-danger btn-sm fw-bold" data-bs-toggle="modal" data-bs-target="#gecmisModal" onclick="gecmisYukle(bugunTarih())">
+                <i class="bi bi-calendar3 me-1"></i> Sipariş Geçmişi
+            </button>
+            <button class="btn btn-outline-warning btn-sm fw-bold" data-bs-toggle="modal" data-bs-target="#raporModal" onclick="raporYukle()">
+                <i class="bi bi-cash-stack me-1"></i> Gün Sonu Raporu
+            </button>
+            <button class="btn btn-outline-light btn-sm fw-bold" data-bs-toggle="modal" data-bs-target="#menuModal" onclick="yonetimMenusuYukle()">
+                <i class="bi bi-gear-fill me-1"></i> Menüyü Yönet
+            </button>
+        </div>
+    </div>
+</nav>
+
+<div class="container-fluid px-3 mb-4">
+    <div class="row g-3">
+        <!-- SOL BLOK: MÜŞTERİ BİLGİLERİ -->
+        <div class="col-lg-5 col-md-6">
+            <div class="card p-custom mb-3">
+                <div class="card-header-custom text-dark">
+                    <span><i class="bi bi-person-lines-fill text-danger me-2"></i>Müşteri Bilgileri</span>
+                    <button class="btn btn-sm btn-outline-secondary py-0 px-2" style="font-size: 0.75rem;" onclick="yeniAdresFormuTemizle()">
+                        <i class="bi bi-plus-circle me-1"></i>Yeni Adres Yaz
+                    </button>
+                </div>
+                
+                <div class="row g-2">
+                    <div class="col-md-6">
+                        <label class="form-label mb-1 small fw-bold">Telefon Numarası</label>
+                        <input type="text" id="telInput" class="form-control form-control-sm" placeholder="05xx xxx xx xx" onkeyup="musteriSorgula()">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label mb-1 small fw-bold">Müşteri Adı Soyadı</label>
+                        <input type="text" id="isimInput" class="form-control form-control-sm" placeholder="Müşteri Adı">
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label mb-1 small fw-bold">Adres Bilgisi</label>
+                        <textarea id="adresInput" class="form-control form-control-sm" rows="2" placeholder="Mahalle, Cadde, Sokak, No..."></textarea>
+                    </div>
+                </div>
+
+                <!-- KAYITLI ADRESLER / PROFİLLER LİSTESİ -->
+                <div id="kayitliAdreslerAlani" class="mt-2" style="display: none;">
+                    <small class="text-muted fw-bold" style="font-size: 0.75rem;">BU NUMARAYA KAYITLI ADRESLER (Seçmek için tıkla):</small>
+                    <div id="adresChipleri" class="kayitli-adres-kutusu"></div>
+                </div>
+            </div>
+
+            <div class="card p-custom">
+                <div class="card-header-custom text-dark">
+                    <span><i class="bi bi-chat-left-text-fill text-danger me-2"></i>Genel Sipariş Notu</span>
+                </div>
+                <input type="text" id="notInput" class="form-control form-control-sm" placeholder="Örn: 12:30'da teslim olsun, pos cihazı vb.">
+            </div>
+        </div>
+
+        <!-- SAĞ BLOK: MENÜ VE SEPET -->
+        <div class="col-lg-7 col-md-6">
+            <!-- MENÜ SEKMELERİ -->
+            <div class="card p-custom mb-3">
+                <ul class="nav nav-pills mb-2" id="menuTabs">
+                    <li class="nav-item">
+                        <button class="nav-link active py-1 px-3 fw-bold btn-sm" data-bs-toggle="pill" data-bs-target="#tabDurumler">🌯 Dürümler & Yiyecek</button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link py-1 px-3 fw-bold btn-sm ms-1" data-bs-toggle="pill" data-bs-target="#tabIcecekler">🥤 İçecekler</button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link py-1 px-3 fw-bold btn-sm ms-1 text-danger" data-bs-toggle="pill" data-bs-target="#tabEkstralar">➕ Ekstralar (Genel)</button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link py-1 px-3 fw-bold btn-sm ms-1 text-secondary" data-bs-toggle="pill" data-bs-target="#tabCikar">❌ Çıkarılacaklar (Genel)</button>
+                    </li>
+                </ul>
+
+                <div class="tab-content pt-2">
+                    <div class="tab-pane fade show active" id="tabDurumler">
+                        <div class="grid-2" id="durumButonlari"></div>
+                    </div>
+                    <div class="tab-pane fade" id="tabIcecekler">
+                        <div class="grid-2" id="icecekButonlari"></div>
+                    </div>
+                    <div class="tab-pane fade" id="tabEkstralar">
+                        <div class="grid-3" id="ekstraButonlari"></div>
+                    </div>
+                    <div class="tab-pane fade" id="tabCikar">
+                        <div class="grid-3" id="cikarButonlari"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SEPET ÖZETİ -->
+            <div class="card p-custom">
+                <div class="card-header-custom text-dark mb-1">
+                    <span><i class="bi bi-cart-check-fill text-danger me-2"></i>Sipariş Özeti</span>
+                    <button class="btn btn-sm btn-outline-secondary py-0 px-2" style="font-size: 0.75rem;" onclick="sepetiTemizle()">Sepeti Temizle</button>
+                </div>
+                <ul id="sepetListesi" class="list-group list-group-flush mb-2"></ul>
+                <div class="d-flex justify-content-between align-items-center py-2 border-top">
+                    <span class="fs-6 fw-bold">Toplam Tutar:</span>
+                    <span class="fs-4 fw-bold text-success" id="toplamTutar">0 TL</span>
+                </div>
+                <button class="btn btn-durum-kaydet btn-lg w-100 py-2" onclick="siparisOnayla()">
+                    <i class="bi bi-printer-fill me-1"></i> SİPARİŞİ ONAYLA VE FİŞ BAS
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ALT BLOK: AKTİF SİPARİŞLER -->
+    <div class="row mt-3">
+        <div class="col-12">
+            <div class="card p-custom">
+                <div class="card-header-custom text-dark d-flex justify-content-between align-items-center">
+                    <div>
+                        <i class="bi bi-clock-history text-danger me-2"></i>
+                        <strong>Aktif Siparişler</strong> (Mutfak & Kurye)
+                    </div>
+                    <div>
+                        <button class="btn btn-sm btn-success fw-bold px-3" onclick="tumunuTeslimEt()">
+                            <i class="bi bi-check2-all me-1"></i> Tümünü Teslim Edildi Yap
+                        </button>
+                    </div>
+                </div>
+                <div class="table-responsive" style="max-height: 280px; overflow-y: auto;">
+                    <table class="table table-sm table-hover align-middle mb-0">
+                        <thead class="table-dark sticky-top">
+                            <tr>
+                                <th style="width: 75px;">Saat</th>
+                                <th style="width: 170px;">Müşteri</th>
+                                <th>Adres</th>
+                                <th>Sipariş İçeriği</th>
+                                <th>Notlar</th>
+                                <th style="width: 90px;">Tutar</th>
+                                <th style="width: 110px;">Durum</th>
+                                <th style="width: 180px;">İşlem</th>
+                            </tr>
+                        </thead>
+                        <tbody id="aktifSiparislerTablosu"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL: ÜRÜNE ÖZEL İSTEK / MODİFİYE -->
+<div class="modal fade" id="ozellestirModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-dark text-white py-2">
+                <h6 class="modal-title fw-bold" id="ozellestirUrunBaslik">Ürün Özelleştir</h6>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-3">
+                <p class="small text-muted mb-2">Bu ürüne eklemek veya üründen çıkarmak istediğiniz özellikleri tıklayın:</p>
+                <div class="mb-3">
+                    <span class="badge bg-danger mb-1">➕ Ekstralar</span>
+                    <div id="modalEkstraListesi" class="d-flex flex-wrap gap-1"></div>
+                </div>
+                <div>
+                    <span class="badge bg-secondary mb-1">❌ Çıkarılacaklar</span>
+                    <div id="modalCikarListesi" class="d-flex flex-wrap gap-1"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL: MENÜ YÖNETİMİ -->
+<div class="modal fade" id="menuModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-dark text-white">
+                <h5 class="modal-title"><i class="bi bi-sliders me-2"></i>Menü ve Fiyat Yönetimi</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="p-3 bg-light rounded border mb-3">
+                    <input type="hidden" id="editUrunId">
+                    <div class="row g-2 align-items-end">
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold">Ürün Adı</label>
+                            <input type="text" id="menuUrunAdi" class="form-control form-control-sm" placeholder="Örn: Tavuk Dürüm">
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label small fw-bold">Fiyat (TL)</label>
+                            <input type="number" id="menuUrunFiyat" class="form-control form-control-sm" placeholder="0">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label small fw-bold">Kategori</label>
+                            <select id="menuUrunKategori" class="form-select form-select-sm">
+                                <option value="durum">🌯 Dürüm / Yiyecek</option>
+                                <option value="icecek">🥤 İçecek</option>
+                                <option value="ekstra">➕ Ekstra İstek (+)</option>
+                                <option value="cikar">❌ Çıkarılacak (-)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-1">
+                            <label class="form-label small fw-bold">Sıra</label>
+                            <input type="number" id="menuUrunSira" class="form-control form-control-sm" value="1">
+                        </div>
+                        <div class="col-md-2">
+                            <button class="btn btn-sm btn-success w-100 fw-bold" onclick="urunKaydet()">
+                                <i class="bi bi-save me-1"></i>Kaydet
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="table-responsive" style="max-height: 350px; overflow-y: auto;">
+                    <table class="table table-sm table-bordered align-middle">
+                        <thead class="table-secondary">
+                            <tr>
+                                <th style="width: 50px;">Sıra</th>
+                                <th>Ürün Adı</th>
+                                <th>Kategori</th>
+                                <th>Fiyat</th>
+                                <th style="width: 140px;">İşlemler</th>
+                            </tr>
+                        </thead>
+                        <tbody id="modalMenuTablosu"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL: SİPARİŞ GEÇMİŞİ -->
+<div class="modal fade" id="gecmisModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title fw-bold"><i class="bi bi-calendar-check me-2"></i>Sipariş Geçmişi</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 p-2 bg-light rounded border gap-2">
+                    <div class="d-flex align-items-center gap-2">
+                        <label class="fw-bold mb-0 small">Tarih:</label>
+                        <input type="date" id="gecmisTarihInput" class="form-control form-control-sm" style="width: 140px;" onchange="gecmisYukle(this.value)">
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <label class="fw-bold mb-0 small"><i class="bi bi-search"></i> Müşteri Ara:</label>
+                        <input type="text" id="gecmisAramaInput" class="form-control form-control-sm" style="width: 180px;" placeholder="Numara veya İsim...">
+                        <button class="btn btn-sm btn-dark fw-bold px-3" onclick="musteriTumZamanlarGetir()">
+                            <i class="bi bi-search me-1"></i>Tüm Zamanlarda Bul
+                        </button>
+                    </div>
+                    <div>
+                        <span class="badge bg-dark fs-6 me-1">Sipariş: <span id="gecmisAdet">0</span> Adet</span>
+                        <span class="badge bg-success fs-6">Teslim Ciro: <span id="gecmisCiro">0 TL</span></span>
+                    </div>
+                </div>
+                <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                    <table class="table table-sm table-striped table-hover align-middle">
+                        <thead class="table-dark sticky-top">
+                            <tr>
+                                <th>Tarih / Saat</th>
+                                <th>Müşteri</th>
+                                <th>Telefon</th>
+                                <th>Adres</th>
+                                <th>Sipariş İçeriği</th>
+                                <th>Notlar</th>
+                                <th>Tutar</th>
+                                <th>Durum</th>
+                            </tr>
+                        </thead>
+                        <tbody id="gecmisTablosu"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL: GÜN SONU KASA RAPORU -->
+<div class="modal fade" id="raporModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title fw-bold"><i class="bi bi-calculator-fill me-2"></i>Bugünkü Gün Sonu Raporu</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row mb-3 text-center">
+                    <div class="col-6">
+                        <div class="p-3 bg-light rounded border">
+                            <small class="text-muted fw-bold">BUGÜNKÜ TOPLAM CİRO</small>
+                            <h2 class="text-success fw-bold mb-0" id="raporCiro">0 TL</h2>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="p-3 bg-light rounded border">
+                            <small class="text-muted fw-bold">TESLİM EDİLEN SİPARİŞ</small>
+                            <h2 class="text-primary fw-bold mb-0" id="raporAdet">0 Adet</h2>
+                        </div>
+                    </div>
+                </div>
+                <h6 class="text-secondary fw-bold mb-2">Teslim Edilenler Listesi</h6>
+                <div class="table-responsive" style="max-height: 250px; overflow-y: auto;">
+                    <table class="table table-sm table-striped table-bordered align-middle">
+                        <thead class="table-secondary">
+                            <tr><th>Saat</th><th>Müşteri</th><th>Ürünler</th><th>Tutar</th></tr>
+                        </thead>
+                        <tbody id="modalRaporTablosu"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    let sepet = [];
+    let sonArayanNo = "";
+    let tumMenu = [];
+    let aktifDuzenlenenIndex = null;
+    let musteriAdresListesi = [];
+
+    function bugunTarih() {
+        const d = new Date();
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, '0');
+        const gun = String(d.getDate()).padStart(2, '0');
+        return `${y}-${m}-${gun}`;
+    }
+
+    window.onload = function() {
+        menuButonlariniYukle();
+        aktifSiparisleriYukle();
+        document.getElementById('gecmisTarihInput').value = bugunTarih();
+        setInterval(telefonAramasıDinle, 1000);
+        setInterval(aktifSiparisleriYukle, 5000);
+    }
+
+    function telefonAramasıDinle() {
+        fetch('/yeni-arama-var-mi')
+        .then(res => res.json())
+        .then(data => {
+            if(data.durum === 'yeni_arama') {
+                sonArayanNo = "0" + data.telefon;
+                document.getElementById('bildirimNo').innerText = sonArayanNo;
+                document.getElementById('telefonBildirim').style.display = 'block';
+                let audio = new Audio('https://actions.google.com/sounds/v1/alarms/digital_watch_alarm_long.ogg');
+                audio.play().catch(e => {});
+            }
+        });
+    }
+
+    function bildirimdenDoldur() {
+        document.getElementById('telInput').value = sonArayanNo;
+        document.getElementById('telefonBildirim').style.display = 'none';
+        musteriSorgula();
+    }
+
+    function menuButonlariniYukle() {
+        fetch('/menu-getir')
+        .then(res => res.json())
+        .then(data => {
+            tumMenu = data;
+            const divDurum = document.getElementById('durumButonlari');
+            const divIcecek = document.getElementById('icecekButonlari');
+            const divEkstra = document.getElementById('ekstraButonlari');
+            const divCikar = document.getElementById('cikarButonlari');
+            
+            divDurum.innerHTML = '';
+            divIcecek.innerHTML = '';
+            divEkstra.innerHTML = '';
+            divCikar.innerHTML = '';
+
+            data.forEach(u => {
+                const kat = u.kategori || 'durum';
+                if(kat === 'durum') {
+                    divDurum.innerHTML += `
+                        <button class="btn btn-durum-item menu-btn" onclick="sepeteEkle('${u.urun_adi}', ${u.fiyat})">
+                            <span>🌯 ${u.urun_adi}</span>
+                            <span class="badge bg-danger">${u.fiyat} TL</span>
+                        </button>`;
+                } else if(kat === 'icecek') {
+                    divIcecek.innerHTML += `
+                        <button class="btn btn-icecek-item menu-btn" onclick="sepeteEkle('${u.urun_adi}', ${u.fiyat})">
+                            <span>🥤 ${u.urun_adi}</span>
+                            <span class="badge bg-primary">${u.fiyat} TL</span>
+                        </button>`;
+                } else if(kat === 'ekstra') {
+                    divEkstra.innerHTML += `
+                        <button class="btn btn-ekstra-item text-truncate" onclick="sepeteEkle('${u.urun_adi}', ${u.fiyat})">
+                            ${u.urun_adi} (${u.fiyat} TL)
+                        </button>`;
+                } else if(kat === 'cikar') {
+                    divCikar.innerHTML += `
+                        <button class="btn btn-cikar-item text-truncate" onclick="sepeteEkle('${u.urun_adi}', ${u.fiyat})">
+                            ${u.urun_adi}
+                        </button>`;
+                }
+            });
+        });
+    }
+
+    function musteriSorgula() {
+        let tel = document.getElementById('telInput').value.replace(/\s+/g, '');
+        const alan = document.getElementById('kayitliAdreslerAlani');
+        const chipleri = document.getElementById('adresChipleri');
+
+        if(tel.length >= 10) {
+            let temizTel = tel.slice(-10);
+            fetch('/musteri/' + temizTel)
+            .then(res => res.json())
+            .then(data => {
+                if(data.durum === 'bulundu' && data.adresler.length > 0) {
+                    musteriAdresListesi = data.adresler;
+                    alan.style.display = 'block';
+                    chipleri.innerHTML = '';
+
+                    adresiFormaSec(0);
+                    adresChipleriniCiz();
+                } else {
+                    alan.style.display = 'none';
+                    chipleri.innerHTML = '';
+                }
+            });
+        } else {
+            alan.style.display = 'none';
+        }
+    }
+
+    function adresChipleriniCiz() {
+        const chipleri = document.getElementById('adresChipleri');
+        chipleri.innerHTML = '';
+        musteriAdresListesi.forEach((item, index) => {
+            let kisaAdres = item.adres.length > 30 ? item.adres.substring(0, 30) + '...' : item.adres;
+            chipleri.innerHTML += `
+                <span class="adres-chip" id="chip-${index}" onclick="adresiFormaSec(${index})">
+                    <strong>${item.isim}</strong>: ${kisaAdres}
+                    <button class="btn-adres-sil" title="Bu adresi sil" onclick="event.stopPropagation(); adresiSil(${item.id})">✕</button>
+                </span>`;
+        });
+    }
+
+    function adresiFormaSec(index) {
+        let secilen = musteriAdresListesi[index];
+        if (secilen) {
+            document.getElementById('isimInput').value = secilen.isim;
+            document.getElementById('adresInput').value = secilen.adres;
+
+            document.querySelectorAll('.adres-chip').forEach(c => c.classList.remove('aktif'));
+            const aktifChip = document.getElementById('chip-' + index);
+            if(aktifChip) aktifChip.classList.add('aktif');
+        }
+    }
+
+    function yeniAdresFormuTemizle() {
+        document.getElementById('isimInput').value = '';
+        document.getElementById('adresInput').value = '';
+        document.getElementById('isimInput').focus();
+        document.querySelectorAll('.adres-chip').forEach(c => c.classList.remove('aktif'));
+    }
+
+    function adresiSil(adresId) {
+        if(!confirm("Bu kayıtlı adresi silmek istediğinize emin misiniz?")) return;
+
+        fetch('/musteri-adresi-sil/' + adresId, { method: 'DELETE' })
+        .then(res => res.json())
+        .then(data => {
+            if(data.durum === 'basarili') {
+                musteriSorgula();
+            }
+        });
+    }
+
+    function sepeteEkle(urunAd, fiyat) {
+        let varOlan = sepet.find(item => item.urunAd === urunAd && item.modlar.length === 0);
+        if (varOlan) {
+            varOlan.adet += 1;
+        } else {
+            sepet.push({ 
+                urunAd: urunAd, 
+                fiyat: fiyat, 
+                adet: 1, 
+                modlar: [],
+                modFiyat: 0 
+            });
+        }
+        sepetiGuncelle();
+    }
+
+    function sepettenAzalt(index) {
+        if (sepet[index].adet > 1) {
+            sepet[index].adet -= 1;
+        } else {
+            sepet.splice(index, 1);
+        }
+        sepetiGuncelle();
+    }
+
+    function sepettenSil(index) {
+        sepet.splice(index, 1);
+        sepetiGuncelle();
+    }
+
+    function sepetiTemizle() {
+        sepet = [];
+        sepetiGuncelle();
+    }
+
+    function ozellestirModalAc(index) {
+        aktifDuzenlenenIndex = index;
+        let item = sepet[index];
+        document.getElementById('ozellestirUrunBaslik').innerText = item.urunAd + " - Özel İstekler";
+
+        const divEkstra = document.getElementById('modalEkstraListesi');
+        const divCikar = document.getElementById('modalCikarListesi');
+        divEkstra.innerHTML = '';
+        divCikar.innerHTML = '';
+
+        tumMenu.forEach(u => {
+            if(u.kategori === 'ekstra') {
+                divEkstra.innerHTML += `
+                    <button class="btn btn-sm btn-outline-danger py-1 px-2" onclick="uruneModEkle('${u.urun_adi}', ${u.fiyat})">
+                        ${u.urun_adi} (+${u.fiyat} TL)
+                    </button>`;
+            } else if(u.kategori === 'cikar') {
+                divCikar.innerHTML += `
+                    <button class="btn btn-sm btn-outline-secondary py-1 px-2" onclick="uruneModEkle('${u.urun_adi}', 0)">
+                        ${u.urun_adi}
+                    </button>`;
+            }
+        });
+
+        new bootstrap.Modal(document.getElementById('ozellestirModal')).show();
+    }
+
+    function uruneModEkle(modAd, ekstraFiyat) {
+        if (aktifDuzenlenenIndex !== null && sepet[aktifDuzenlenenIndex]) {
+            let item = sepet[aktifDuzenlenenIndex];
+            
+            if (item.adet > 1) {
+                item.adet -= 1;
+                sepet.push({
+                    urunAd: item.urunAd,
+                    fiyat: item.fiyat,
+                    adet: 1,
+                    modlar: [modAd],
+                    modFiyat: ekstraFiyat
+                });
+            } else {
+                if(!item.modlar.includes(modAd)) {
+                    item.modlar.push(modAd);
+                    item.modFiyat += ekstraFiyat;
+                }
+            }
+            sepetiGuncelle();
+            bootstrap.Modal.getInstance(document.getElementById('ozellestirModal')).hide();
+        }
+    }
+
+    function sepetiGuncelle() {
+        const liste = document.getElementById('sepetListesi');
+        liste.innerHTML = '';
+        let toplam = 0;
+
+        sepet.forEach((item, index) => {
+            let birimTutar = item.fiyat + (item.modFiyat || 0);
+            let araToplam = birimTutar * item.adet;
+            toplam += araToplam;
+
+            let modlarHtml = '';
+            if(item.modlar && item.modlar.length > 0) {
+                modlarHtml = '<div class="mt-1">';
+                item.modlar.forEach(m => {
+                    modlarHtml += `<span class="mod-tag">${m}</span>`;
+                });
+                modlarHtml += '</div>';
+            }
+
+            liste.innerHTML += `
+                <li class="list-group-item py-2 px-2 border-bottom" style="font-size: 0.88rem;">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="sepet-adet-badge">${item.adet}x</span>
+                            <strong class="text-dark">${item.urunAd}</strong>
+                            <button class="btn btn-sm btn-outline-warning py-0 px-2 ms-2 fw-bold" style="font-size: 0.72rem;" onclick="ozellestirModalAc(${index})">
+                                <i class="bi bi-pencil-fill"></i> Detay Ekle
+                            </button>
+                        </div>
+                        <div class="d-flex align-items-center gap-1">
+                            <span class="fw-bold text-success me-2">${araToplam} TL</span>
+                            <button class="btn btn-sm btn-outline-danger btn-adet-islem" onclick="sepettenAzalt(${index})">-</button>
+                            <button class="btn btn-sm btn-outline-success btn-adet-islem" onclick="sepeteEkle('${item.urunAd}', ${item.fiyat})">+</button>
+                            <button class="btn btn-sm btn-danger btn-adet-islem ms-1" onclick="sepettenSil(${index})">✕</button>
+                        </div>
+                    </div>
+                    ${modlarHtml}
+                </li>`;
+        });
+
+        document.getElementById('toplamTutar').innerText = toplam + " TL";
+    }
+
+    function siparisOnayla() {
+        let tel = document.getElementById('telInput').value.replace(/\s+/g, '').slice(-10);
+        let isim = document.getElementById('isimInput').value.trim();
+        let adres = document.getElementById('adresInput').value.trim();
+        let notlar = document.getElementById('notInput').value.trim();
+
+        if(!tel || !isim || sepet.length === 0) { 
+            alert("Lütfen telefon, isim ve en az bir ürün seçiniz!"); 
+            return; 
+        }
+
+        let toplamTutar = 0;
+        sepet.forEach(i => {
+            toplamTutar += (i.fiyat + (i.modFiyat || 0)) * i.adet;
+        });
+
+        fetch('/siparis-ekle', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ 
+                telefon: tel, 
+                isim: isim, 
+                adres: adres, 
+                sepet_yapisi: sepet, 
+                toplam_tutar: toplamTutar, 
+                notlar: notlar 
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if(data.durum === 'basarili') {
+                document.getElementById('telInput').value = '';
+                document.getElementById('isimInput').value = '';
+                document.getElementById('adresInput').value = '';
+                document.getElementById('notInput').value = '';
+                document.getElementById('kayitliAdreslerAlani').style.display = 'none';
+                sepet = [];
+                sepetiGuncelle();
+                aktifSiparisleriYukle();
+            }
+        });
+    }
+
+    function aktifSiparisleriYukle() {
+        fetch('/aktif-siparisler')
+        .then(res => res.json())
+        .then(data => {
+            const tablo = document.getElementById('aktifSiparislerTablosu');
+            tablo.innerHTML = '';
+            if(data.length === 0) {
+                tablo.innerHTML = '<tr><td colspan="8" class="text-center text-muted py-3">Bekleyen aktif sipariş yok.</td></tr>';
+                return;
+            }
+            data.forEach(s => {
+                let badgeClass = s.durum === 'Hazırlanıyor' ? 'bg-warning text-dark' : 'bg-primary text-white';
+                let butonText = s.durum === 'Hazırlanıyor' ? '<i class="bi bi-bicycle"></i> Kuryeye Ver' : '<i class="bi bi-check-lg"></i> Teslim Edildi';
+                let sonrakiDurum = s.durum === 'Hazırlanıyor' ? 'Kuryede' : 'Teslim Edildi';
+                
+                tablo.innerHTML += `
+                    <tr>
+                        <td><span class="badge bg-light text-dark border">${s.saat}</span></td>
+                        <td><strong>${s.isim}</strong><br><small class="text-muted">0${s.telefon}</small></td>
+                        <td><small>${s.adres}</small></td>
+                        <td>${s.icerik}</td>
+                        <td class="text-danger fw-bold"><small>${s.notlar || '-'}</small></td>
+                        <td class="text-success fw-bold">${s.toplam_tutar} TL</td>
+                        <td><span class="badge ${badgeClass}">${s.durum}</span></td>
+                        <td>
+                            <button class="btn btn-sm btn-dark me-1 py-0 px-2" onclick="durumGuncelle(${s.id}, '${sonrakiDurum}')">${butonText}</button>
+                            <button class="btn btn-sm btn-outline-danger py-0 px-2" onclick="durumGuncelle(${s.id}, 'İptal Edildi')">İptal</button>
+                        </td>
+                    </tr>`;
+            });
+        });
+    }
+
+    function durumGuncelle(id, yeniDurum) { 
+        if(yeniDurum === 'İptal Edildi' && !confirm("Bu siparişi iptal etmek istediğinize emin misiniz?")) return;
+        fetch('/durum-guncelle', { 
+            method: 'POST', 
+            headers: {'Content-Type': 'application/json'}, 
+            body: JSON.stringify({ id: id, durum: yeniDurum }) 
+        })
+        .then(res => res.json())
+        .then(data => { 
+            if(data.durum === 'basarili') { 
+                aktifSiparisleriYukle(); 
+            } 
+        }); 
+    }
+
+    function tumunuTeslimEt() {
+        if(!confirm("Mutfaktaki ve kuryedeki TÜM aktif siparişleri 'Teslim Edildi' yapmak istiyor musunuz?")) return;
+        fetch('/tumunu-teslim-et', { method: 'POST' })
+        .then(res => res.json())
+        .then(data => {
+            if(data.durum === 'basarili') {
+                aktifSiparisleriYukle();
+            }
+        });
+    }
+
+    function yonetimMenusuYukle() {
+        fetch('/menu-getir')
+        .then(res => res.json())
+        .then(data => {
+            const tablo = document.getElementById('modalMenuTablosu');
+            tablo.innerHTML = '';
+            data.forEach(u => {
+                let katGosterim = u.kategori === 'durum' ? '🌯 Dürüm/Yiyecek' : 
+                                 (u.kategori === 'icecek' ? '🥤 İçecek' : 
+                                 (u.kategori === 'ekstra' ? '➕ Ekstra' : '❌ Çıkarılacak'));
+                tablo.innerHTML += `
+                    <tr>
+                        <td><strong>${u.sira || 99}</strong></td>
+                        <td>${u.urun_adi}</td>
+                        <td><span class="badge bg-light text-dark border">${katGosterim}</span></td>
+                        <td><strong>${u.fiyat} TL</strong></td>
+                        <td>
+                            <button class="btn btn-sm btn-warning py-0 px-2 text-dark me-1" onclick="urunDuzenleHazirla(${u.id}, '${u.urun_adi}', ${u.fiyat}, '${u.kategori}', ${u.sira || 99})">Düzenle</button>
+                            <button class="btn btn-sm btn-danger py-0 px-2" onclick="urunSil(${u.id})">Sil</button>
+                        </td>
+                    </tr>`;
+            });
+        });
+    }
+
+    function urunKaydet() {
+        let id = document.getElementById('editUrunId').value;
+        let ad = document.getElementById('menuUrunAdi').value.trim();
+        let fiyat = document.getElementById('menuUrunFiyat').value;
+        let kategori = document.getElementById('menuUrunKategori').value;
+        let sira = document.getElementById('menuUrunSira').value || 99;
+
+        if(!ad || fiyat === "") { alert("Lütfen ürün adı ve fiyat giriniz!"); return; }
+
+        fetch('/urun-kaydet', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ 
+                id: id || null, 
+                urun_adi: ad, 
+                fiyat: parseFloat(fiyat), 
+                kategori: kategori, 
+                sira: parseInt(sira) 
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if(data.durum === 'basarili') {
+                document.getElementById('editUrunId').value = '';
+                document.getElementById('menuUrunAdi').value = '';
+                document.getElementById('menuUrunFiyat').value = '';
+                document.getElementById('menuUrunSira').value = '1';
+                yonetimMenusuYukle();
+                menuButonlariniYukle();
+            }
+        });
+    }
+
+    function urunDuzenleHazirla(id, ad, fiyat, kategori, sira) {
+        document.getElementById('editUrunId').value = id;
+        document.getElementById('menuUrunAdi').value = ad;
+        document.getElementById('menuUrunFiyat').value = fiyat;
+        document.getElementById('menuUrunKategori').value = kategori || 'durum';
+        document.getElementById('menuUrunSira').value = sira || 99;
+    }
+
+    function urunSil(id) {
+        if(confirm("Bu ürünü silmek istediğinize emin misiniz?")) {
+            fetch('/urun-sil/' + id, { method: 'DELETE' })
+            .then(res => res.json())
+            .then(data => {
+                if(data.durum === 'basarili') {
+                    yonetimMenusuYukle();
+                    menuButonlariniYukle();
+                }
+            });
+        }
+    }
+
+    // --- GEÇMİŞ VE ÖZEL MÜŞTERİ SORGULAMA ---
+    function gecmisYukle(secilenTarih) {
+        fetch('/gecmis-siparisler?tarih=' + secilenTarih)
+        .then(res => res.json())
+        .then(data => {
+            gecmisVeriIsle(data);
+        });
+    }
+
+    function musteriTumZamanlarGetir() {
+        let aramaNo = document.getElementById('gecmisAramaInput').value.trim();
+        if(!aramaNo) {
+            alert("Lütfen aramak için bir telefon numarası veya isim giriniz!");
+            return;
+        }
+        document.getElementById('gecmisTarihInput').value = ''; // Tarih seçicisini temizle
+        
+        fetch('/gecmis-siparisler?arama_no=' + encodeURIComponent(aramaNo))
+        .then(res => res.json())
+        .then(data => {
+            gecmisVeriIsle(data);
+        });
+    }
+
+    function gecmisVeriIsle(data) {
+        document.getElementById('gecmisCiro').innerText = data.ciro + " TL";
+        document.getElementById('gecmisAdet').innerText = data.adet;
+        
+        const tablo = document.getElementById('gecmisTablosu');
+        tablo.innerHTML = '';
+
+        if(data.liste.length === 0) {
+            tablo.innerHTML = '<tr><td colspan="8" class="text-center text-muted py-4">Kayıtlı sipariş bulunamadı.</td></tr>';
+            return;
+        }
+
+        data.liste.forEach(s => {
+            let badge = s.durum === 'Teslim Edildi' ? 'bg-success' : (s.durum === 'İptal Edildi' ? 'bg-danger' : 'bg-warning text-dark');
+            tablo.innerHTML += `
+                <tr>
+                    <td><strong>${s.saat}</strong></td>
+                    <td>${s.isim}</td>
+                    <td>0${s.telefon}</td>
+                    <td><small>${s.adres}</small></td>
+                    <td>${s.icerik}</td>
+                    <td class="text-danger"><small>${s.notlar || '-'}</small></td>
+                    <td class="fw-bold text-success">${s.toplam_tutar} TL</td>
+                    <td><span class="badge ${badge}">${s.durum}</span></td>
+                </tr>`;
+        });
+    }
+
+    function raporYukle() {
+        fetch('/gunluk-rapor')
+        .then(res => res.json())
+        .then(data => {
+            document.getElementById('raporCiro').innerText = data.ciro + " TL";
+            document.getElementById('raporAdet').innerText = data.adet + " Adet";
+            const tablo = document.getElementById('modalRaporTablosu');
+            tablo.innerHTML = '';
+            if(data.liste.length === 0) { 
+                tablo.innerHTML = '<tr><td colspan="4" class="text-center text-muted py-3">Bugün henüz teslim edilmiş sipariş yok.</td></tr>'; 
+            } else { 
+                data.liste.forEach(i => { 
+                    tablo.innerHTML += `<tr><td>${i.saat}</td><td>${i.isim}</td><td>${i.icerik}</td><td class="text-success fw-bold">${i.toplam_tutar} TL</td></tr>`; 
+                }); 
+            }
+        });
+    }
+</script>
+</body>
+</html>
