@@ -61,8 +61,8 @@ def veritabani_tablo_guncelle():
     conn.commit()
     conn.close()
 
-# --- LOGOYU ESC/POS TERMAL YAZICI FORMATINA ÇEVİRME ---
-def logo_hazirla_escpos(genislik=180):
+# --- LOGOYU KARE VE TERTEMİZ BEYAZ ARKA PLANLI FORMATTA ÇEVİRME ---
+def logo_hazirla_escpos(genislik=160):
     logo_yolu = os.path.join('static', 'logo.jpeg')
     if not os.path.exists(logo_yolu):
         logo_yolu = os.path.join('static', 'logo.jpg')
@@ -70,6 +70,7 @@ def logo_hazirla_escpos(genislik=180):
         return b""
 
     try:
+        # Resmi açıp kare formatta kırpıyoruz (Siyahlıklar olmadan orijinal kare alan)
         im = Image.open(logo_yolu).convert('RGBA')
         w, h = im.size
         kenar = min(w, h)
@@ -77,9 +78,15 @@ def logo_hazirla_escpos(genislik=180):
         top = (h - kenar) // 2
         im_crop = im.crop((left, top, left + kenar, top + kenar))
 
+        # Beyaz arkaplan oluşturuyoruz ki siyah köşeler kesinlikle olmasın
+        arkaplan = Image.new('RGBA', (kenar, kenar), (255, 255, 255, 255))
+        arkaplan.paste(im_crop, (0, 0), im_crop)
+
         yukseklik = int((kenar / kenar) * genislik)
         yukseklik = (yukseklik // 8) * 8
-        im_resized = im_crop.resize((genislik, yukseklik), Image.Resampling.LANCZOS)
+        im_resized = arkaplan.resize((genislik, yukseklik), Image.Resampling.LANCZOS)
+        
+        # Siyah-beyaz termal formatına dönüştür
         im_bw = im_resized.convert('1')
 
         bw_genislik, bw_yukseklik = im_bw.size
@@ -93,6 +100,7 @@ def logo_hazirla_escpos(genislik=180):
         komut = b'\x1d\x76\x30\x00' + bytes([xL, xH, yL, yH])
         veri = im_bw.tobytes()
         
+        # Ortala (\x1b\x61\x01), logoyu bas, sola hizala ve bir satır boşluk bırak
         return b'\x1b\x61\x01' + komut + veri + b'\x1b\x61\x00\n'
     except Exception as e:
         print(f"Logo çevirme hatası: {e}")
@@ -115,9 +123,13 @@ def sanal_fis_bas(isim, telefon, adres, icerik_yapisi, toplam_tutar, notlar):
         notlar = turkce_karakter_duzelt(notlar)
     
     fis = "\n"
+    fis += "\x1b\x61\x01"      # Ortala
+    fis += "\x1b\x21\x20"      # Büyük Yazı
+    fis += "HAS KATIK DONER\n"
+    fis += "\x1b\x21\x00"      # Normal Boyut
+    fis += "\x1b\x61\x00"      # Sola Hizala
     fis += "========================================\n"
-    fis += "          * HAS KATIK DONER *           \n"
-    fis += "          SIPARIS FISI (YENI)           \n"
+    fis += "              SIPARIS FISI              \n"
     fis += "========================================\n"
     fis += f"Tarih/Saat : {simdi}\n"
     fis += "----------------------------------------\n"
@@ -126,18 +138,34 @@ def sanal_fis_bas(isim, telefon, adres, icerik_yapisi, toplam_tutar, notlar):
     fis += f"Tel   : {telefon}\n"
     fis += f"Adres : {adres}\n"
     fis += "----------------------------------------\n"
-    fis += "              SIPARIS ICERIGI            \n"
+    fis += "              SIPARIS ICERIGI           \n"
     
+    # Gruplama mantığı
+    gruplanmis = {}
     for item in icerik_yapisi:
         ad = turkce_karakter_duzelt(item.get('urunAd', '').strip())
         adet = item.get('adet', 1)
-        modlar = item.get('modlar', [])
+        modlar = sorted([turkce_karakter_duzelt(m.strip()) for m in item.get('modlar', [])])
+        
+        mod_key = tuple(modlar)
+        anahtar = (ad, mod_key)
+        
+        if anahtar in gruplanmis:
+            gruplanmis[anahtar]['adet'] += adet
+        else:
+            gruplanmis[anahtar] = {
+                'adet': adet,
+                'modlar': modlar
+            }
+
+    for (ad, mod_key), veri in gruplanmis.items():
+        adet = veri['adet']
+        modlar = veri['modlar']
         
         fis += f" [{adet}x] {ad}\n"
         if modlar:
             for m in modlar:
-                temiz_m = turkce_karakter_duzelt(m.strip())
-                fis += f"      >> {temiz_m}\n"
+                fis += f"      >> {m}\n"
         
     fis += "----------------------------------------\n"
     if notlar and notlar.strip():
@@ -147,7 +175,7 @@ def sanal_fis_bas(isim, telefon, adres, icerik_yapisi, toplam_tutar, notlar):
     fis += f"TOPLAM TUTAR : {toplam_tutar} TL\n"
     fis += "========================================\n"
     fis += "       BIZI TERCIH ETTIGINIZ ICIN       \n"
-    fis += "              TESEKKUR EDERIZ            \n"
+    fis += "              TESEKKUR EDERIZ           \n"
     fis += "========================================\n\n\n\n"
 
     print(fis)
@@ -160,18 +188,23 @@ def sanal_fis_bas(isim, telefon, adres, icerik_yapisi, toplam_tutar, notlar):
             try:
                 win32print.StartPagePrinter(h_yazici)
                 win32print.WritePrinter(h_yazici, b'\x1b\x40')
-                logo_bytes = logo_hazirla_escpos(genislik=180)
+                
+                # Kare formatlı logo görselini gönder[cite: 6]
+                logo_bytes = logo_hazirla_escpos(genislik=160)
                 if logo_bytes:
                     win32print.WritePrinter(h_yazici, logo_bytes)
                 
-                win32print.WritePrinter(h_yazici, fis.encode('ascii', errors='replace'))
+                win32print.WritePrinter(h_yazici, fis.encode('cp1254', errors='replace'))
+                
                 kesme_komutu = b'\x1d\x56\x41\x00' 
                 win32print.WritePrinter(h_yazici, kesme_komutu)
+                
                 win32print.EndPagePrinter(h_yazici)
             finally:
                 win32print.EndDocPrinter(h_yazici)
         finally:
             win32print.ClosePrinter(h_yazici)
+            
     except Exception as e:
         print(f"\n⚠️ Yazıcıya gönderilirken hata oluştu: {e}\n")
 
@@ -369,7 +402,6 @@ def tumunu_teslim_et():
     conn.close()
     return jsonify({'durum': 'basarili'})
 
-# --- GEÇMİŞ SİPARİŞLER (TARİH VEYA NUMARAYA GÖRE TÜM ZAMANLAR) ---
 @app.route('/gecmis-siparisler', methods=['GET'])
 def gecmis_siparisler():
     tarih = request.args.get('tarih')
@@ -378,7 +410,6 @@ def gecmis_siparisler():
     conn = get_db_connection()
     
     if arama_no:
-        # Belirtilen numara (veya ada) ait tüm zamanlardaki siparişleri getir
         temiz_arama = f"%{arama_no}%"
         liste = conn.execute('''
             SELECT s.id, m.isim, m.telefon, m.adres, s.icerik, s.toplam_tutar, s.notlar, s.durum,
@@ -438,7 +469,7 @@ def gunluk_rapor():
         SELECT s.id, m.isim, s.icerik, s.toplam_tutar, time(s.tarih, 'localtime') as saat
         FROM siparisler s
         JOIN musteriler m ON s.musteri_telefon = m.telefon
-        WHERE s.durum = 'Teslim Edildi' AND date(tarih, 'localtime') = date('now', 'localtime')
+        WHERE s.durum = 'Teslim Edildi' AND date(s.tarih, 'localtime') = date('now', 'localtime')
         ORDER BY s.id DESC
     ''').fetchall()
     conn.close()
