@@ -1072,7 +1072,6 @@
         }
     }
 
-    // --- GEÇMİŞ VE ÖZEL MÜŞTERİ SORGULAMA ---
     function gecmisYukle(secilenTarih) {
         fetch('/gecmis-siparisler?tarih=' + secilenTarih)
         .then(res => res.json())
@@ -1087,7 +1086,7 @@
             alert("Lütfen aramak için bir telefon numarası veya isim giriniz!");
             return;
         }
-        document.getElementById('gecmisTarihInput').value = ''; // Tarih seçicisini temizle
+        document.getElementById('gecmisTarihInput').value = '';
         
         fetch('/gecmis-siparisler?arama_no=' + encodeURIComponent(aramaNo))
         .then(res => res.json())
